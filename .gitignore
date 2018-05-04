@@ -1,5 +1,14 @@
 .DS_Store
+*.git
+*.jar
+*.log
 
 node_modules
-pull-requests
-comments
+issues
+comments.json
+issue-comments.json
+pull-comments.json
+*.bfg-report
+
+users.js
+state.json
