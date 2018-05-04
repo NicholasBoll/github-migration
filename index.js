@@ -5,7 +5,7 @@ const glob = require('glob')
 
 const config = require('./config')
 
-const repo = config.sourceRepo
+const repo = config.source.repo
 const source = `${config.source.baseUrl}/${config.source.org}/${config.source.repo}`
 const target = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
 
@@ -49,9 +49,9 @@ const replaceAll = (str, obj) => {
   return newStr
 }
 
-const writeList = async (name, items, hashMap) => {
+const writeList = async (name, items) => {
   const fileName = `${repo}/${name}.json`
-  await fs.writeFile(fileName, replaceAll(JSON.stringify(items, null, '  '), hashMap))
+  await fs.writeFile(fileName, JSON.stringify(items, null, '  '))
 }
 
 const getHashMap = async (repo) => {
@@ -73,18 +73,18 @@ const getHashMap = async (repo) => {
 
 const migrate = async () => {
 
-  // await fs.ensureDir(repo)
-  // // get all the pull requests
-  // const issues = await fetchList('issues')
-  // await writeIssues(issues)
-  // await [
-  //   { listId: 'pulls/comments', fileName: 'pull-comments' },
-  //   { listId: 'comments', fileName: 'comments' },
-  //   { listId: 'issues/comments', fileName: 'issue-comments' }
-  // ].forEach(async ({ listId, fileName}) => {
-  //   const issueComments = await fetchList(listId)
-  //   await writeList(fileName, issueComments, hashMap)
-  // })
+  await fs.ensureDir(repo)
+  // get all the pull requests
+  const issues = await fetchList('issues')
+  await writeIssues(issues)
+  await [
+    { listId: 'pulls/comments', fileName: 'pull-comments' },
+    { listId: 'comments', fileName: 'comments' },
+    { listId: 'issues/comments', fileName: 'issue-comments' }
+  ].forEach(async ({ listId, fileName}) => {
+    const issueComments = await fetchList(listId)
+    await writeList(fileName, issueComments)
+  })
 }
 
 migrate()

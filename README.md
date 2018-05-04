@@ -20,3 +20,4 @@ It is best to do this process when nobody is currently working. All in-progress 
     - Run `(cd <repo>.git; git reflog expire --expire=now --all && git gc --prune=now --aggressive)`
     - To see how big your repo is you can run `du -sh <repo>.git`
 1. Push to target location: `(cd <repo>; git push <dest-repo> --mirror)`
+1. Download all issues and comments: `npm run fetch`. This will download all github artifacts. To see output, run `DEBUG=* npm run fetch`. This will count toward you API, but fetching is in batches of 100. This should mean only dozens of API hits
