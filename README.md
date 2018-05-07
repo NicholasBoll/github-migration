@@ -25,4 +25,4 @@ It is best to do this process when nobody is currently working. All in-progress 
     - Rewrite API commit hashes: `npm run rewrite`. This will use the commit map created by BFG and write the new commit hashes to all downloaded Pull requests, comments and commits.
 1. Push to target location: `(cd <repo>; git push <dest-repo> --mirror)`
 1. Now we start the creation process on the target repo. Run `npm run createBranches`. This will create a branch for each PR (from the `sed` command run earlier)
-1. Now that branches are created, we'll need to push all the issues (includes pull requests): `npm run createIssues`. This will 
+1. Now that branches are created, we'll need to push all the issues (includes pull requests): `npm run createIssues`. State tracking is used in case of any errors. This step is the most finicky because the issues must be added in order, so the script will bail on any error informing you how to proceed. You may need to create a dummy issue to move on.
