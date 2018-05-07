@@ -4,10 +4,7 @@
 *.log
 
 node_modules
-issues
-comments.json
-issue-comments.json
-pull-comments.json
+*.json
 *.bfg-report
 
 users.js

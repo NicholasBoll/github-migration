@@ -5,12 +5,16 @@
   "main": "index.js",
   "scripts": {
     "initialize": "node ./init.js",
-    "bfg": "node ./bfg",
-    "clone": "node ./clone",
     "test:source": "node ./test.js source",
     "test:target": "node ./test.js target",
-    "fetch": "node ./index.js fetch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "bfg": "node ./bfg",
+    "clone": "node ./clone",
+    "fetch": "node ./fetch.js",
+    "check": "node ./check.js",
+    "anchor": "node ./anchor.js",
+    "rewrite": "node ./rewrite.js",
+    "createBranches": "node ./createBranches.js",
+    "createIssues": "node ./createIssues.js"
   },
   "author": "",
   "license": "ISC",
@@ -18,6 +22,8 @@
     "debug": "^3.1.0",
     "fs-extra": "^5.0.0",
     "glob": "^7.1.2",
+    "lodash": "^4.17.10",
+    "moment": "^2.22.1",
     "request": "^2.85.0",
     "request-promise": "^4.2.2",
     "yargs": "^11.0.0"

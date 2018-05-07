@@ -11,8 +11,19 @@ const target = `${config.target.baseUrl}/${config.target.org}/${config.target.re
 
 const pageSize = 100
 
+const headers = {
+  'Accept': 'application/vnd.github.v3+json',
+  'User-Agent': 'node.js'
+}
+if (config.source.token) {
+  headers['Authorization'] = `token ${config.source.token}`
+}
+
 const getPage = (listId) => async (page) => {
-  return JSON.parse(await request(`${source}/${listId}?state=all&per_page=${pageSize}&page=${page}`))
+  return JSON.parse(await request({
+    headers,
+    url: `${source}/${listId}?state=all&per_page=${pageSize}&page=${page}`
+  }))
 }
 
 const fetchList = async (listId) => {
@@ -33,20 +44,24 @@ const fetchList = async (listId) => {
   return results
 }
 
-const writeIssues = async (issues) => {
+/**
+ * 
+ * @param {{}[]} issues 
+ * @param {{}[]} pulls 
+ */
+const writeIssues = async (issues, pulls) => {
   await fs.ensureDir(`${repo}/issues`)
-  await issues.forEach(async issue => {
-    const fileName = `${repo}/issues/pr-${issue.number}.json`
+  for (let issue of issues) {
+    if (issue.pull_request) {
+      const pr = pulls.find(pull => pull.number === issue.number)
+      if (pr) {
+        issue.base = pr.base
+        issue.head = pr.head
+      }
+    }
+    const fileName = `${repo}/issues/issue-${issue.number}.json`
     await fs.writeFile(fileName, JSON.stringify(issue, null, '  '))
-  })
-}
-
-const replaceAll = (str, obj) => {
-  let newStr = str
-  for (let key in obj) {
-    newStr = newStr.replace(key, obj[key])
   }
-  return newStr
 }
 
 const writeList = async (name, items) => {
@@ -54,37 +69,22 @@ const writeList = async (name, items) => {
   await fs.writeFile(fileName, JSON.stringify(items, null, '  '))
 }
 
-const getHashMap = async (repo) => {
-  // get the mapping of all commits
-  const hashFilename = glob.sync(`./${config.source.repo}*/**/object-id-map.old-new.txt`).pop()
-  let hashMap = {}
-  console.log(hashFilename)
-  if (hashFilename) {
-    const contents = (await fs.readFile(hashFilename)).toString().split('\n')
-    hashMap = contents.reduce((result, line) => {
-      const [oldHash, newHash] = line.split(' ')
-      result[oldHash] = newHash
-      return result
-    }, {})
-  }
-
-  return hashMap
-}
-
 const migrate = async () => {
 
   await fs.ensureDir(repo)
   // get all the pull requests
   const issues = await fetchList('issues')
-  await writeIssues(issues)
-  await [
-    { listId: 'pulls/comments', fileName: 'pull-comments' },
-    { listId: 'comments', fileName: 'comments' },
-    { listId: 'issues/comments', fileName: 'issue-comments' }
-  ].forEach(async ({ listId, fileName}) => {
-    const issueComments = await fetchList(listId)
-    await writeList(fileName, issueComments)
-  })
+  const pulls = await fetchList('pulls')
+  await writeIssues(issues, pulls)
+  // await Promise.all([
+  //   { listId: 'pulls/comments', fileName: 'pull-comments' },
+  //   { listId: 'comments', fileName: 'comments' },
+  //   { listId: 'issues/comments', fileName: 'issue-comments' },
+  //   { listId: 'commits', fileName: 'commits' },
+  // ].map(async ({ listId, fileName}) => {
+  //   const issueComments = await fetchList(listId)
+  //   await writeList(fileName, issueComments)
+  // }))
 }
 
 migrate()

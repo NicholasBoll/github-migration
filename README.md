@@ -11,6 +11,9 @@ It is best to do this process when nobody is currently working. All in-progress 
 1. Test your config: `npm run test:source` and `npm run test:target` to make sure those work correctly. Adjust your config file as necessary until these commands are good
 1. Clone your repo: `git clone <source-repo-url> --mirror`
     - Mirror mode will download all branches, tags and refs (required for converting pull requests)
+1. Download all issues and comments: `npm run fetch`. This will download all github artifacts. To see output, run `DEBUG=* npm run fetch`. This will count toward you API limit, but fetching is in batches of 100. This won't be much for small repos, but a repo with 13K commits would be 100s of requests
+1. Check for orphaned commits: `npm run check`. This will create a `missing-commits.json`. This is all commits that are not part of any current branch. There will probably be many of them.
+1. Attempt to anchor as many commits as possible. `npm run anchor`. This will create a branch from a commit still referenced in git and create that commit on your source branch (first side-effect task). It will output how many anchored commits were saved. If this number is 0, move on. If it is greater than 0 and you care for these comments, start this guide over.
 1. Move PR read-only refs: `sed -i.bak s/pull/pr/g <repo>.git/packed-refs`
 1. Optional: Rewrite history
     - To see how big your repo is you can run `du -sh <repo>.git`
@@ -19,5 +22,6 @@ It is best to do this process when nobody is currently working. All in-progress 
     - Example: `java -jar bfg-1.13.0.jar --strip-blobs-bigger-than 2M <repo>.git`
     - Run `(cd <repo>.git; git reflog expire --expire=now --all && git gc --prune=now --aggressive)`
     - To see how big your repo is you can run `du -sh <repo>.git`
+    - Rewrite API commit hashes: `npm run rewrite`. This will use the commit map created by BFG and write the new commit hashes to all downloaded Pull requests, comments and commits.
 1. Push to target location: `(cd <repo>; git push <dest-repo> --mirror)`
-1. Download all issues and comments: `npm run fetch`. This will download all github artifacts. To see output, run `DEBUG=* npm run fetch`. This will count toward you API, but fetching is in batches of 100. This should mean only dozens of API hits
+1. Now we start the creation process on the target repo. Run `npm run branches`. This will create a branch for each PR (from the `sed` command run earlier)
