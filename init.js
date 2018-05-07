@@ -37,6 +37,11 @@ module.exports = {
      * Optional token to access your target github. If you have GHE, you may not need to fill this in
      */
     token: '',
+    /**
+     * Optional URL for user avatars when creating issues and comments. Requires 'id' config in 'users.json'
+     * @example 
+     */
+    avatarUrl: 'https://avatars0.githubusercontent.com/u/{id}?s=140&v=4',
   },
   /**
    * Optional
@@ -55,7 +60,7 @@ if (!fs.pathExistsSync('./config.js')) {
 }
 
 usersContent = `
-modules.exports = {
+module.exports = {
   /**
    * Username in source
    */
@@ -64,8 +69,9 @@ modules.exports = {
      * Username in target
      */
     target: 'new-user-name',
+    id: '', // ID for avatars. If you go the the profile of the user in the target repo, it will be something like 'https://avatars0.githubusercontent.com/u/{id}?s=140&v=4'
     token: '', // optional - if present will set PRs and comments to this author rather than the default token
-  }
+  },
 }
 `
 

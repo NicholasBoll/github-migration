@@ -4,6 +4,7 @@ const fs = require('fs')
 const glob = require('glob')
 
 const config = require('./config')
+const users = require('./users')
 
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
 
@@ -24,10 +25,18 @@ const formatDate = function formatDate(date) {
 	return html;
 }
 
+const getAvatarUrl = (issue) => {
+  if (config.target.avatarUrl && users[issue.user.login]) {
+    return config.target.avatarUrl.replace('{id}', users[issue.user.login].id)
+  } else {
+    return `${issue.user.avatar_url}&amp;r=x&amp;s=140`
+  }
+}
+
 const createMessage = (issue) => {
 	const creation = formatDate(issue.created_at);
 	
-	const createdAvatar = issue.user.avatar_url ? `<img alt="${issue.user.login}" class="avatar js-avatar" height="20" src="${issue.user.avatar_url}&amp;r=x&amp;s=140" width="20">` : ''
+	const createdAvatar = issue.user.avatar_url ? `<img alt="${issue.user.login}" class="avatar js-avatar" height="20" src="${getAvatarUrl(issue)}" width="20">` : ''
 
 	let closedAvatar = '';
 	if (issue.closed_by){
@@ -54,7 +63,7 @@ const createMessage = (issue) => {
 const bumpIssueCount = (issue) => {
   const state = JSON.parse(fs.readFileSync('./state.json'))
 
-  state.issue = pull.number
+  state.issue = issue.number
   fs.writeFileSync('./state.json', JSON.stringify(state, null, '  '))
 }
 
@@ -66,6 +75,7 @@ const logError = (issue, err) => {
 }
 
 const createIssue = async (issue) => {
+  console.log(`Creating issue: ${issue.number}`)
   await request({
     method: 'POST',
     headers,
@@ -90,11 +100,10 @@ const createPull = async (pull) => {
   const body = {
     title: pull.title,
     body: `${createMessage(pull)}\r\n\r\n${pull.body}`,
-    head: pull.base.sha === pull.head.sha ? 'refs/heads/master' : `pr/${pull.number}/head`,
+    head: pull.base.sha === pull.head.sha ? 'refs/heads/master' : `pr${pull.number}head`,
     base: `pr${pull.number}base`,
     maintainer_can_modify: true,
   }
-  console.log('body', body)
   await request({
     method: 'POST',
     headers,
@@ -116,12 +125,14 @@ const main = async () => {
     .map(file => JSON.parse(fs.readFileSync(file)))
     .sort((a, b) => a.number - b.number)
 
-  for (let issue of [issues[0]]) {
-    if (issue.base) {
-      console.log(`Creating pull request: PR-${issue.number}`)
+  const state = JSON.parse(fs.readFileSync('./state.json'))
+  for (let issue of issues) {
+    if (issue.number <= (state.issue || 0)) {
+      // we already processed this issue
+      console.log(`Skipping ${issue.number}. Already processed`)
+    } else if (issue.base) {
       await createPull(issue)
     } else {
-      console.log(`Creating issue: ${issue.number}`)
       await createIssue(issue)
     }
   }

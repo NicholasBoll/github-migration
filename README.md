@@ -7,7 +7,7 @@ It is best to do this process when nobody is currently working. All in-progress 
 1. run `npm install`
 1. Run `npm run initialize` - this will create a `config.js` file. Modify this file
 1. Optional: Configure `users.js`
-    - Maps from usernames of the source github to the destination github. If tokens are also provided, the user will be listed as the author of pull requests, issues and comments. Without the token, the token in the config will be used.
+    - Maps from usernames of the source github to the destination github. If tokens are also provided, the user will be listed as the author of pull requests, issues and comments. Without the token, the token in the config will be used. If ids are provided, avatars will link to the real avatar - especially useful moving from GHE -> github.com where avatar URLs might be behind a corporate proxy
 1. Test your config: `npm run test:source` and `npm run test:target` to make sure those work correctly. Adjust your config file as necessary until these commands are good
 1. Clone your repo: `git clone <source-repo-url> --mirror`
     - Mirror mode will download all branches, tags and refs (required for converting pull requests)
@@ -24,4 +24,5 @@ It is best to do this process when nobody is currently working. All in-progress 
     - To see how big your repo is you can run `du -sh <repo>.git`
     - Rewrite API commit hashes: `npm run rewrite`. This will use the commit map created by BFG and write the new commit hashes to all downloaded Pull requests, comments and commits.
 1. Push to target location: `(cd <repo>; git push <dest-repo> --mirror)`
-1. Now we start the creation process on the target repo. Run `npm run branches`. This will create a branch for each PR (from the `sed` command run earlier)
+1. Now we start the creation process on the target repo. Run `npm run createBranches`. This will create a branch for each PR (from the `sed` command run earlier)
+1. Now that branches are created, we'll need to push all the issues (includes pull requests): `npm run createIssues`. This will 

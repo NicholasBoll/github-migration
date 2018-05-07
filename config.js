@@ -10,6 +10,7 @@ module.exports = {
     org: 'logrhythm',
     repo: 'web-console-api',
     token: '33dee682074e85699bbb609f98b498627186cd3b',
+    avatarUrl: 'https://avatars0.githubusercontent.com/u/{id}?s=140&v=4',
   },
   bfg: '--delete-folders Indexer,Database,vendor,Sql,Documents,public,service_mgmt,config,client --strip-blobs-bigger-than 2M'
 }
