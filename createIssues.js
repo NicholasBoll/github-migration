@@ -1,10 +1,10 @@
 const request = require('request-promise')
-const moment = require('moment')
 const fs = require('fs')
 const glob = require('glob')
 
 const config = require('./config')
 const users = require('./users')
+const createMessage = require('./createMessage')
 
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
 
@@ -14,50 +14,6 @@ const headers = {
 }
 if (config.target.token) {
   headers['Authorization'] = `token ${config.target.token}`
-}
-
-const shortFormat = 'MMM D, YYYY'
-const longFormat = 'dddd, MMMM Do YYYY, h:mm:ss a Z'
-const formatDate = function formatDate(date) {
-	const display = moment(date).format(shortFormat);
-	const title = moment(date).format(longFormat);
-	const html = '<time datetime="' + date + '" title="' + title + '">' + display + '</time>';
-	return html;
-}
-
-const getAvatarUrl = (issue) => {
-  if (config.target.avatarUrl && users[issue.user.login]) {
-    return config.target.avatarUrl.replace('{id}', users[issue.user.login].id)
-  } else {
-    return `${issue.user.avatar_url}&amp;r=x&amp;s=140`
-  }
-}
-
-const createMessage = (issue) => {
-	const creation = formatDate(issue.created_at);
-	
-	const createdAvatar = issue.user.avatar_url ? `<img alt="${issue.user.login}" class="avatar js-avatar" height="20" src="${getAvatarUrl(issue)}" width="20">` : ''
-
-	let closedAvatar = '';
-	if (issue.closed_by){
-		if (issue.closed_by.login == issue.user.login) {
-			closedAvatar = ''
-		} else {
-			closedAvatar = `<img alt="${issue.closed_by.login}" class="avatar js-avatar" height="20" src="${issue.closed_by.avatar_url}&amp;r=x&amp;s=140" width="20">`
-		}
-	}
-	const closing = issue.closed_at ? formatDate(issue.closed_at) : ''
-
-	let result = `> ${createdAvatar} ${closedAvatar} Authored by ${issue.user.login} on ${creation}`
-
-	if (closing !== '') {
-		result = result + "; closed";
-		if (issue.closed_by) {
-			result = result + ' by ' + issue.closed_by.login
-		}
-		result = result + ' on ' + closing;
-	}
-	return result;
 }
 
 const bumpIssueCount = (issue) => {
@@ -125,7 +81,7 @@ const main = async () => {
     .map(file => JSON.parse(fs.readFileSync(file)))
     .sort((a, b) => a.number - b.number)
 
-  const state = JSON.parse(fs.readFileSync('./state.json'))
+  const state = JSON.parse(await fs.readFile('./state.json'))
   for (let issue of issues) {
     if (issue.number <= (state.issue || 0)) {
       // we already processed this issue

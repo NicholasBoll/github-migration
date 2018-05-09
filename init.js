@@ -41,7 +41,7 @@ module.exports = {
      * Optional URL for user avatars when creating issues and comments. Requires 'id' config in 'users.json'
      * @example 
      */
-    avatarUrl: 'https://avatars0.githubusercontent.com/u/{id}?s=140&v=4',
+    avatarUrl: 'https://avatars0.githubusercontent.com/u/{id}?s=40&v=4',
   },
   /**
    * Optional

@@ -5,8 +5,17 @@ const config = require('./config')
 
 const replaceAll = (str, obj) => {
   let newStr = str
+  let i = 0
+  const total = Object.keys(obj).length
+  let lastPercent = 0
   for (let key in obj) {
-    newStr = newStr.replace(key, obj[key])
+    newStr = newStr.replace(new RegExp(key, 'g'), obj[key])
+    const percent = Math.round(i / total * 100)
+    if (lastPercent != percent) {
+      console.log(`${percent}% Done`)
+      lastPercent = percent
+    }
+    i++
   }
   return newStr
 }
@@ -48,10 +57,11 @@ const main = async () => {
   await rewrite(hashMap, 'comments')
   await rewrite(hashMap, 'issue-comments')
   await rewrite(hashMap, 'pull-comments')
+  await rewrite(hashMap, 'commits')
 
-  for (let issue of issues) {
-    await rewrite(hashMap, `issues/${issue.match(/(issue-[0-9]+)\.json/)[1]}`)
-  }
+  // for (let issue of issues) {
+  //   await rewrite(hashMap, `issues/${issue.match(/(issue-[0-9]+)\.json/)[1]}`)
+  // }
 }
 
 main()
