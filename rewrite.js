@@ -6,13 +6,17 @@ const config = require('./config')
 const replaceAll = (str, obj) => {
   let newStr = str
   let i = 0
+  let lastTime = new Date()
   const total = Object.keys(obj).length
   let lastPercent = 0
   for (let key in obj) {
     newStr = newStr.replace(new RegExp(key, 'g'), obj[key])
     const percent = Math.round(i / total * 100)
     if (lastPercent != percent) {
-      console.log(`${percent}% Done`)
+      if (new Date() - 1000 > lastTime) {
+        console.log(`${percent}% Done`)
+        lastTime = new Date()
+      }
       lastPercent = percent
     }
     i++
@@ -52,16 +56,15 @@ const rewrite = async (hashMap, name) => {
 
 const main = async () => {
   const hashMap = await getHashMap(config.source.repo)
-  const issues = glob.sync(`${config.source.repo}/issues/issue-*.json`)
+  const issues = glob.sync(`${config.source.repo}/issues/issue-+([0-9]).json`)
+  // await rewrite(hashMap, 'comments')
+  // await rewrite(hashMap, 'issue-comments')
+  // await rewrite(hashMap, 'pull-comments')
+  // await rewrite(hashMap, 'commits')
 
-  await rewrite(hashMap, 'comments')
-  await rewrite(hashMap, 'issue-comments')
-  await rewrite(hashMap, 'pull-comments')
-  await rewrite(hashMap, 'commits')
-
-  // for (let issue of issues) {
-  //   await rewrite(hashMap, `issues/${issue.match(/(issue-[0-9]+)\.json/)[1]}`)
-  // }
+  for (let issue of issues) {
+    await rewrite(hashMap, `issues/${issue.match(/(issue-[0-9]+)\.json/)[1]}`)
+  }
 }
 
 main()

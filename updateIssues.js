@@ -3,7 +3,10 @@ const fs = require('fs-extra')
 const glob = require('glob')
 
 const config = require('./config')
+const createMessage = require('./createMessage')
+
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
+const apiCallsPerHour = 3000 // for API rate limiting
 
 const headers = {
   'Accept': 'application/vnd.github.v3+json',
@@ -11,6 +14,13 @@ const headers = {
 }
 if (config.target.token) {
   headers['Authorization'] = `token ${config.target.token}`
+}
+
+const bumpIssueCount = (issue) => {
+  const state = JSON.parse(fs.readFileSync('./state.json'))
+
+  state.updateIssue = issue.number
+  fs.writeFileSync('./state.json', JSON.stringify(state, null, '  '))
 }
 
 const patch = async (url, body) => {
@@ -23,11 +33,21 @@ const patch = async (url, body) => {
   })
 }
 
+const post = async (url, body) => {
+  return request({
+    method: 'POST',
+    headers,
+    url,
+    body,
+    json: true
+  })
+}
+
 const updateBranch = async (issue) => {
   const url = `${api}/issues/${issue.number}`
   const body = {
     state: issue.state,
-    labels: ['Github Import']
+    labels: (issue.labels || []).concat(['Github Import'])
   }
   await patch(url, body)
     .then(response => {
@@ -35,6 +55,7 @@ const updateBranch = async (issue) => {
       return response
     })
     .catch()
+  await bumpIssueCount(issue)
 }
 
 const main = async () => {
@@ -43,8 +64,13 @@ const main = async () => {
     .sort((a, b) => a.number - b.number)
   
   // console.log(issues)
+  const state = JSON.parse(await fs.readFile('./state.json'))
   for (let issue of issues) {
-    await updateBranch(issue)
+    if (issue.number <= (state.updateIssue || 0)) {
+      console.log(`Skipping ${issue.number}. Already processed`)
+    } else {
+      await updateBranch(issue)
+    }
   }
 }
 

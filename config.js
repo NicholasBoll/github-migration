@@ -14,5 +14,6 @@ module.exports = {
     token: '33dee682074e85699bbb609f98b498627186cd3b', // my token
     avatarUrl: 'https://avatars0.githubusercontent.com/u/{id}?s=40&v=4',
   },
+  apiCallsPerHour: 3000,
   bfg: '--delete-folders Indexer,Database,vendor,Sql,Documents,public,service_mgmt,config,client --strip-blobs-bigger-than 2M'
 }

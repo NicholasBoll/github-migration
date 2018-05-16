@@ -1,6 +1,5 @@
 const request = require('request-promise')
 const fs = require('fs-extra')
-const debug = require('debug')
 const glob = require('glob')
 
 const config = require('./config')
@@ -33,11 +32,11 @@ const fetchList = async (listId) => {
   const getListPage = getPage(listId)
   
   do {
-    debug('fetch')(`Fetching page ${pageNumber} of ${listId}`)
+    console.log(`Fetching page ${pageNumber} of ${listId}`)
     const response = await getListPage(pageNumber)
     results = results.concat(response)
     resultSize = response.length
-    // debug('fetch')(`Results length: ${results.length}`)
+    // console.log(`Results length: ${results.length}`)
     pageNumber++
   } while(resultSize === pageSize)
 
@@ -57,6 +56,7 @@ const writeIssues = async (issues, pulls) => {
       if (pr) {
         issue.base = pr.base
         issue.head = pr.head
+        issue.merged_at = pr.merged_at
       }
     }
     const fileName = `${repo}/issues/issue-${issue.number}.json`

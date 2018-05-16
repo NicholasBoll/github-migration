@@ -44,6 +44,10 @@ module.exports = {
     avatarUrl: 'https://avatars0.githubusercontent.com/u/{id}?s=40&v=4',
   },
   /**
+   * This value will throttle scripts to prevent going over API limits
+   */
+  apiCallsPerHour: 3000,
+  /**
    * Optional
    * BFG command to run: https://rtyley.github.io/bfg-repo-cleaner/
    * This value will include just arguments.

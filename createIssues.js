@@ -38,7 +38,7 @@ const createIssue = async (issue) => {
     url: `${api}/issues`,
     body: {
       title: issue.title,
-      body: `${issue.body}\r\n\r\n${createMessage(issue)}`,
+      body: `${issue.body}\n\n\n${createMessage(issue)}`,
     },
     json: true,
   })

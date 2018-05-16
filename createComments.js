@@ -7,9 +7,7 @@ const config = require('./config')
 const users = require('./users')
 const createMessage = require('./createMessage')
 
-
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
-const apiCallsPerHour = 3000 // for API rate limiting
 
 const headers = {
   'Accept': 'application/vnd.github.v3+json',
@@ -134,7 +132,7 @@ const createReviewComment = async (comment, comments = []) => {
           })
       })
   }
-  await sleep(60 * 60 * 1000 / apiCallsPerHour)
+  await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
 }
 
 const createCommitComment = async (comment) => {
@@ -165,7 +163,7 @@ const createCommitComment = async (comment) => {
         logError(comment, err)
       })
     
-    await sleep(60 * 60 * 1000 / apiCallsPerHour)
+    await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
   }
 }
 
@@ -191,7 +189,7 @@ const createIssueComment = async (comment) => {
         logError(comment, err)
       })
 
-    await sleep(60 * 60 * 1000 / apiCallsPerHour)
+    await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
   }
 }
 
@@ -225,17 +223,10 @@ const main = async () => {
     .sort((a, b) => a.created_at > b.created_at ? 1 : -1)
   
   console.log(`Comments to process: ${comments.length}`)
-  console.log(issueComments.length)
-  console.log(reviewComments.length)
-  console.log(commitComments.length)
-  console.log(comments.length)
-  console.log(comments[0].created_at)
-  console.log(comments[1].created_at)
-  console.log(comments[2].created_at)
   
   let processed = 0
   for (let comment of comments) {
-    console.log(`ETA: ${formatDuration((comments.length - processed) / apiCallsPerHour * 60 * 60 * 1000)}`)
+    console.log(`ETA: ${formatDuration((comments.length - processed) / config.apiCallsPerHour * 60 * 60 * 1000)}`)
     await createComment(comment, comments)
     processed++
   }

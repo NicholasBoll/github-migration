@@ -38,37 +38,20 @@ const getUsername = user => {
   }
 }
 
-const template = `
-> [<img alt="Frank-Hassanabad" height="40" width="40" align="left" src="https://avatars0.githubusercontent.com/u/1151048?s=48&v=4">](/FrankHassanabad) **Authored by [Frank-Hassanabad](/FrankHassanabad)**
-_<time datetime="2016-01-21T13:53:36Z" title="Thursday, January 21st 2016, 6:53:36 am -07:00">Jan 21, 2016</time>_
----
-`
-
 const createMessage = (issue) => {
 	const creation = formatDate(issue.created_at);
 	
 	const createdAvatar = issue.user.avatar_url ? `[<img alt="${issue.user.login}" height="40" width="40" align="left" src="${getAvatarUrl(issue.user)}">](${getUserUrl(issue.user)})` : ''
 
-	let closedAvatar = '';
-	if (issue.closed_by){
-		if (issue.closed_by.login == issue.user.login) {
-			closedAvatar = ''
-		} else {
-			closedAvatar = `<img alt="${issue.closed_by.login}" height="20" width="20" src="${issue.closed_by.avatar_url}&amp;r=x&amp;s=20">`
-		}
-	}
-	const closing = issue.closed_at ? formatDate(issue.closed_at) : ''
+  const merged_at = issue.merged_at ? `Merged ${formatDate(issue.merged_at)}` : ''
+  const closed_at = issue.closed_at ? `Closed ${formatDate(issue.closed_at)}` : ''
 
-	let result = `> ${createdAvatar} **Authored by [${getUsername(issue.user)}](${getUserUrl(issue.user)})**\n_${creation}_`
-
-	if (closing !== '') {
-		result = result + "; closed";
-		if (issue.closed_by) {
-			result = result + ' by ' + issue.closed_by.login
-		}
-		result = result + '\n' + closing;
-	}
-	return `${result}\n---`;
+  return `
+    > ${createdAvatar} **Authored by [${getUsername(issue.user)}](${getUserUrl(issue.user)})**
+    _${creation}_
+    _${merged_at || closed_at}_
+    ---
+  `.trim().split('\n').map(line => line.trim()).join('\n')
 }
 
 module.exports = createMessage

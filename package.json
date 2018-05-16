@@ -16,7 +16,8 @@
     "createBranches": "node ./createBranches.js",
     "createIssues": "node ./createIssues.js",
     "createComments": "node ./createComments.js",
-    "updateIssues": "node ./updateIssues"
+    "updateIssues": "node ./updateIssues",
+    "deleteBranches": "node ./deleteBranches"
   },
   "author": "",
   "license": "ISC",
