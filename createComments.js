@@ -94,7 +94,7 @@ const createReviewComment = async (comment, comments = []) => {
       const state = JSON.parse(await fs.readFile('./state.json'))
       body = {
         body: `${createMessage(comment)}\n\n\n${comment.body}`,
-        in_reply_to: state.comments[reply.id],
+        in_reply_to: (state.comments || {})[reply.id],
       }
     } else {
       body = {
