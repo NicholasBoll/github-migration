@@ -76,15 +76,15 @@ const migrate = async () => {
   const issues = await fetchList('issues')
   const pulls = await fetchList('pulls')
   await writeIssues(issues, pulls)
-  // await Promise.all([
-  //   { listId: 'pulls/comments', fileName: 'pull-comments' },
-  //   { listId: 'comments', fileName: 'comments' },
-  //   { listId: 'issues/comments', fileName: 'issue-comments' },
-  //   { listId: 'commits', fileName: 'commits' },
-  // ].map(async ({ listId, fileName}) => {
-  //   const issueComments = await fetchList(listId)
-  //   await writeList(fileName, issueComments)
-  // }))
+  await Promise.all([
+    { listId: 'pulls/comments', fileName: 'pull-comments' },
+    { listId: 'comments', fileName: 'comments' },
+    { listId: 'issues/comments', fileName: 'issue-comments' },
+    { listId: 'commits', fileName: 'commits' },
+  ].map(async ({ listId, fileName}) => {
+    const issueComments = await fetchList(listId)
+    await writeList(fileName, issueComments)
+  }))
 }
 
 migrate()
