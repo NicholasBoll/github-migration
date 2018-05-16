@@ -29,4 +29,6 @@ It is best to do this process when nobody is currently working. All in-progress 
 1. Now we start the creation process on the target repo. Run `npm run createBranches`. This will create a branch for each PR (from the `sed` command run earlier)
 1. Now that branches are created, we'll need to push all the issues (includes pull requests): `npm run createIssues`. State tracking is used in case of any errors. This step is the most finicky because the issues must be added in order, so the script will bail on any error informing you how to proceed. You may need to create a dummy issue to move on.
 1. Now that PRs are created, we'll need to push all the comments: `npm run createComments`. This step will probably take the longest. This step uses throttling to try to stay under your API rate limit set by github. This will also log a lot. State tracking is used here as well, so you can quit and pick up later.
-1. Issues/PRs will now have to be updated (possibly close and add a "Github Import" label). We can't tell Github the PRs are merged, only closed.
+1. Issues/PRs will now have to be updated (possibly close and add a "Github Import" label). We can't tell Github the PRs are merged, only closed. Run `npm run updateIssues`
+1. Issues are now closed. We need to clean up all the branches created by the migration process. Run `npm run deleteBranches`
+1. If everything went well, you can celebrate! :tada"
