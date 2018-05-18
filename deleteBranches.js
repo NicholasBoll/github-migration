@@ -16,10 +16,10 @@ if (config.target.token) {
 }
 
 const bumpIssueCount = (issue) => {
-  const state = JSON.parse(fs.readFileSync('./state.json'))
+  const state = JSON.parse(fs.readFileSync(`./${config.source.repo}/state.json`))
 
   state.deletedIssue = issue.number
-  fs.writeFileSync('./state.json', JSON.stringify(state, null, '  '))
+  fs.writeFileSync(`./${config.source.repo}/state.json`, JSON.stringify(state, null, '  '))
 }
 
 const deleteBranch = async (issue) => {
@@ -82,7 +82,7 @@ const main = async () => {
     .sort((a, b) => a.number - b.number)
   
   // console.log(issues)
-  const state = JSON.parse(await fs.readFile('./state.json'))
+  const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
   let processed = 0  
   for (let issue of issues) {
     if (issue.number <= (state.deletedIssue || 0)) {

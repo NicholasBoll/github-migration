@@ -84,9 +84,3 @@ if (!fs.pathExistsSync('./users.js')) {
 
   fs.writeFileSync('./users.js', usersContent)
 }
-
-if (!fs.pathExistsSync('./state.json')) {
-  console.log('Creating state file')
-
-  fs.writeFileSync('./state.json', '{}')
-}

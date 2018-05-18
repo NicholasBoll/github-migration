@@ -1,5 +1,5 @@
 const request = require('request-promise')
-const fs = require('fs')
+const fs = require('fs-extra')
 const glob = require('glob')
 
 const config = require('./config')
@@ -7,6 +7,12 @@ const users = require('./users')
 const createMessage = require('./createMessage')
 
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
+
+if (!fs.pathExistsSync(`./${config.source.repo}/state.json`)) {
+  console.log('Creating state file')
+
+  fs.writeFileSync(`./${config.source.repo}/state.json`, '{}')
+}
 
 const headers = {
   'Accept': 'application/vnd.github.v3+json',
@@ -17,16 +23,16 @@ if (config.target.token) {
 }
 
 const bumpIssueCount = (issue) => {
-  const state = JSON.parse(fs.readFileSync('./state.json'))
+  const state = JSON.parse(fs.readFileSync(`./${config.source.repo}/state.json`))
 
   state.issue = issue.number
-  fs.writeFileSync('./state.json', JSON.stringify(state, null, '  '))
+  fs.writeFileSync(`./${config.source.repo}/state.json`, JSON.stringify(state, null, '  '))
 }
 
 const logError = (issue, err) => {
   console.log(`Could not create issue: ${issue.number}`)
   console.log(`Message: ${err}`)
-  console.log(`To continue, manually create an issue on your target repo and increment the 'issue' in './state.json'`)
+  console.log(`To continue, manually create an issue on your target repo and increment the 'issue' in ./${config.source.repo}/state.json`)
   process.exit(1)
 }
 
@@ -81,7 +87,7 @@ const main = async () => {
     .map(file => JSON.parse(fs.readFileSync(file)))
     .sort((a, b) => a.number - b.number)
 
-  const state = JSON.parse(await fs.readFile('./state.json'))
+  const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
   for (let issue of issues) {
     if (issue.number <= (state.issue || 0)) {
       // we already processed this issue

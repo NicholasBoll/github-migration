@@ -17,10 +17,10 @@ if (config.target.token) {
 }
 
 const bumpIssueCount = (issue) => {
-  const state = JSON.parse(fs.readFileSync('./state.json'))
+  const state = JSON.parse(fs.readFileSync(`./${config.source.repo}/state.json`))
 
   state.updateIssue = issue.number
-  fs.writeFileSync('./state.json', JSON.stringify(state, null, '  '))
+  fs.writeFileSync(`./${config.source.repo}/state.json`, JSON.stringify(state, null, '  '))
 }
 
 const patch = async (url, body) => {
@@ -64,7 +64,7 @@ const main = async () => {
     .sort((a, b) => a.number - b.number)
   
   // console.log(issues)
-  const state = JSON.parse(await fs.readFile('./state.json'))
+  const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
   for (let issue of issues) {
     if (issue.number <= (state.updateIssue || 0)) {
       console.log(`Skipping ${issue.number}. Already processed`)

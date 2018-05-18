@@ -42,15 +42,15 @@ const commitExists = async (sha) => {
 
 const setCommentProcessed = async (id, newId = true) => {
   console.log(`Setting ${id} as processed`)
-  const state = JSON.parse(await fs.readFile('./state.json'))
+  const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
 
   state.comments = state.comments || {}
   state.comments[id] = newId
-  await fs.writeFile('./state.json', JSON.stringify(state, null, '  '))
+  await fs.writeFile(`./${config.source.repo}/state.json`, JSON.stringify(state, null, '  '))
 }
 
 const isCommentProcessed = async (id) => {
-  const state = JSON.parse(await fs.readFile('./state.json'))
+  const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
 
   return !!(state.comments || {})[id]
 }
@@ -91,7 +91,7 @@ const createReviewComment = async (comment, comments = []) => {
     let body
     const reply = comments.find(c => c.original_commit_id === comment.original_commit_id && c.original_position === comment.original_position && c.diff_hunk === comment.diff_hunk)
     if (reply) {
-      const state = JSON.parse(await fs.readFile('./state.json'))
+      const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
       body = {
         body: `${createMessage(comment)}\n\n\n${comment.body}`,
         in_reply_to: (state.comments || {})[reply.id],
