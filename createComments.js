@@ -121,7 +121,6 @@ const createReviewComment = async (comment, comments = []) => {
             await setCommentProcessed(id, response.id)
           })
           .catch(async err => {
-            console.log('err', err)
             if (err.error && err.error && err.error.errors[0].field) {
               console.log(`Commit ${comment.commit_id} no longer exists (someone did a force push)`)
               console.log('Skipping')
