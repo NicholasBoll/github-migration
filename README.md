@@ -14,8 +14,6 @@ It is best to do this process when nobody is currently working. All in-progress 
 1. `npm run test:target`. This will test your target configuration. Adjust the source config until this works
 1. `git clone <source-repo-url> --mirror`. This will clone your source repo. The `mirror` option will download all branches, tags and refs (required for converting pull requests)
 1. `npm run fetch`. This will download all github artifacts. **Note** will count toward your API limit, but fetching is in batches of 100. This won't be much for small repos, but a repo with 13K commits would be 100s of requests
-1. `npm run check`. This will check for orphaned commits. This will create a `missing-commits.json`. This is all commits that are not part of any current branch. There will probably be many of them.
-1. `npm run anchor`. This will create a branch from a commit still referenced in git and create that commit on your source branch (first side-effect task). It will output how many anchored commits were saved. If this number is 0, move on. If it is greater than 0 and you care for these comments, start this guide over.
 1. `sed -i.bak '/\/head/s/pull\//\/heads\/pr/g; /pr/s/\/head/head/g' <repo>.git/packed-refs`. **Note** change `<repo>` to the target repository name. This is important for copying pull requests. Github uses hidden refs for pull request branches (that even persist after you PR branch is deleted), but github will reject pushing hidden refs. Rewriting them means they will show as actual branches in your new repository, but we'll clean them up later.
 1. Optional: Rewrite history
     - `du -sh <repo>.git`. See how big your repo is
