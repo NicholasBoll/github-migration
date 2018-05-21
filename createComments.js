@@ -30,13 +30,13 @@ const post = async (url, body) => {
 let commits = []
 /**
  * Figure out if a commit exists
- * @param {string} sha 
+ * @param {string} sha
  */
 const commitExists = async (sha) => {
   if (!commits.length) {
     commits = JSON.parse(await fs.readFile(`${config.source.repo}/commits.json`))
   }
-  
+
   return !!commits.find(commit => commit.sha === sha)
 }
 
@@ -109,7 +109,7 @@ const createReviewComment = async (comment, comments = []) => {
         await setCommentProcessed(id, response.id)
       })
       .catch(err => {
-        console.log(`Commit ${comment.original_commit_id} no longer exists (someone did a force push)`)        
+        console.log(`Commit ${comment.original_commit_id} no longer exists (someone did a force push)`)
         const body = {
           body: `${createMessage(comment)}\n> **Outdated (history rewrite)** - original diff\n---\n\`\`\`diff\n${comment.diff_hunk}\n\`\`\`\n\n\n${comment.body}`,
           commit_id: comment.commit_id,
@@ -121,7 +121,7 @@ const createReviewComment = async (comment, comments = []) => {
             await setCommentProcessed(id, response.id)
           })
           .catch(async err => {
-            if (err.error && err.error && err.error.errors[0].field) {
+            if (err.error && err.error && err.error.errors && err.error.errors[0].field) {
               console.log(`Commit ${comment.commit_id} no longer exists (someone did a force push)`)
               console.log('Skipping')
             } else {
@@ -138,7 +138,7 @@ const createCommitComment = async (comment) => {
   const { id } = comment
 	const sha = comment.commit_id;
   const url = `${api}/commits/${sha}/comments`
-  
+
   if (await isCommentProcessed(id)) {
     console.log(`Comment ${id} already processed`)
   } else if (!await commitExists(sha)) {
@@ -161,7 +161,7 @@ const createCommitComment = async (comment) => {
       .catch(err => {
         logError(comment, err)
       })
-    
+
     await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
   }
 }
@@ -220,9 +220,9 @@ const main = async () => {
   const comments = []
     .concat(issueComments, commitComments, reviewComments)
     .sort((a, b) => a.created_at > b.created_at ? 1 : -1)
-  
+
   console.log(`Comments to process: ${comments.length}`)
-  
+
   let processed = 0
   for (let comment of comments) {
     console.log(`ETA: ${formatDuration((comments.length - processed) / config.apiCallsPerHour * 60 * 60 * 1000)}`)
@@ -232,5 +232,10 @@ const main = async () => {
 
   // await fs.writeFile(`${config.source.repo}/all-comments.json`, JSON.stringify(comments, null, '  '))
 }
+
+process.on('unhandledRejection', error => {
+  // Will print "unhandledRejection err is not defined"
+  console.log(error);
+});
 
 main()

@@ -30,3 +30,24 @@ It is best to do this process when nobody is currently working. All in-progress 
 1. `npm run updateIssues`. This will close all issues that are closed in the source repository. This will also add all the previous labels and add the "Github Import" label. We can't tell Github the PRs are merged, only closed.
 1. `npm run deleteBranches`. This will clean up all the base and head branches created by the migration process
 1. If everything went well, you can celebrate! :tada:
+
+## Double Migration
+
+If you've already migrated and started creating new issues / pull requests, you can still migrate from your original repository.
+
+```
+OriginalRepo -> NewRepo1
+... some period of time ...
+OriginalRepo -> NewRepo2
+NewRepo1 -> offset issues -> NewRepo2
+```
+
+To migrate `NewRepo1` to `NewRepo2`, before running `git push` and `createBranches`, first update `config.js` to have an increment, based on the last issue # from `OriginalRepo`:
+
+```
+increment: 188
+```
+
+Then, run `npm run increment`. After that, you can run through `git push`, `createBranches`, `createIssues`, and `createComments`.
+
+The pull requests to `NewRepo1` that merged will have mismatched #'s, so you'll need to manually rewrite commit messages to link up the numbers (same as the offset / increment).
