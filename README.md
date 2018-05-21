@@ -44,12 +44,12 @@ OriginalRepo -> NewRepo2
 NewRepo1 -> offset issues -> NewRepo2
 ```
 
-To migrate `NewRepo1` to `NewRepo2`, before running `createBranches`, first update `config.js` to have an increment, based on the last issue # from `OriginalRepo`:
+To migrate `NewRepo1` to `NewRepo2`, before running `git push` and `createBranches`, first update `config.js` to have an increment, based on the last issue # from `OriginalRepo`:
 
 ```
 increment: 188
 ```
 
-Then, run `npm run increment`. After that, you can run through `createBranches`, `createIssues`, and `createComments`.
+Then, run `npm run increment`. After that, you can run through `git push`, `createBranches`, `createIssues`, and `createComments`.
 
 The pull requests to `NewRepo1` that merged will have mismatched #'s, so you'll need to manually rewrite commit messages to link up the numbers (same as the offset / increment).
