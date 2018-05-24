@@ -53,7 +53,6 @@ const main = async () => {
   console.log(`Releases to create: ${releases.length}`)
 
   for (let release of releases) {
-    console.log(`ETA: ${formatDuration((releases.length - processed) / config.apiCallsPerHour * 60 * 60 * 1000)}`)
     await createRelease(release, releases)
   }
 }
