@@ -6,6 +6,7 @@ const glob = require('glob')
 const config = require('./config')
 const users = require('./users')
 const createMessage = require('./createMessage')
+const processImages = require('./processImages')
 
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
 
@@ -14,7 +15,7 @@ const headers = {
   'User-Agent': 'node.js'
 }
 if (config.target.token) {
-  headers['Authorization'] = `token ${config.target.token}`
+  headers['Authorization'] = `token ${config.target.commentToken || config.target.token}`
 }
 
 const post = async (url, body) => {
@@ -61,7 +62,7 @@ const isCommitComment = comment => !!comment.commit_id && !comment.pull_request_
 const logError = (comment, err) => {
   console.log(`Could not create comment: ${comment.id}`)
   console.log(`Message: ${err}`)
-  process.exit(1)
+  // process.exit(1)
 }
 
 const createComment = async (comment, comments) => {
@@ -83,6 +84,7 @@ const createReviewComment = async (comment, comments = []) => {
   const { id } = comment
   const issueNumber = comment.pull_request_url.split('/').pop()
   const url = `${api}/pulls/${issueNumber}/comments`
+  const commentBody = await processImages(comment.body)
 
   if (await isCommentProcessed(id)) {
     console.log(`Comment ${id} already processed`)
@@ -93,12 +95,12 @@ const createReviewComment = async (comment, comments = []) => {
     if (reply) {
       const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
       body = {
-        body: `${createMessage(comment)}\n\n\n${comment.body}`,
+        body: `${createMessage(comment)}\n\n\n${commentBody}`,
         in_reply_to: (state.comments || {})[reply.id],
       }
     } else {
       body = {
-        body: `${createMessage(comment)}\n\n\n${comment.body}`,
+        body: `${createMessage(comment)}\n\n\n${commentBody}`,
         commit_id: comment.original_commit_id,
         path: comment.path,
         position: comment.original_position,
@@ -109,9 +111,9 @@ const createReviewComment = async (comment, comments = []) => {
         await setCommentProcessed(id, response.id)
       })
       .catch(err => {
-        console.log(`Commit ${comment.original_commit_id} no longer exists (someone did a force push)`)
+        console.log(`Commit ${comment.original_commit_id} no longer exists`)
         const body = {
-          body: `${createMessage(comment)}\n> **Outdated (history rewrite)** - original diff\n---\n\`\`\`diff\n${comment.diff_hunk}\n\`\`\`\n\n\n${comment.body}`,
+          body: `${createMessage(comment)}\n> **Outdated (history rewrite)** - original diff\n---\n\`\`\`diff\n${comment.diff_hunk}\n\`\`\`\n\n\n${commentBody}`,
           commit_id: comment.commit_id,
           path: comment.path,
           position: comment.position == null ? comment.original_position : comment.position,
@@ -138,6 +140,7 @@ const createCommitComment = async (comment) => {
   const { id } = comment
 	const sha = comment.commit_id;
   const url = `${api}/commits/${sha}/comments`
+  const commentBody = await processImages(comment.body)
 
   if (await isCommentProcessed(id)) {
     console.log(`Comment ${id} already processed`)
@@ -146,7 +149,7 @@ const createCommitComment = async (comment) => {
   } else {
     console.log(`Adding comment ${id} to ${url}`)
     const body = {
-      body: `${createMessage(comment)}\n\n\n${comment.body}`,
+      body: `${createMessage(comment)}\n\n\n${commentBody}`,
       sha,
 			path: comment.path,
 			position: comment.position
@@ -170,13 +173,14 @@ const createIssueComment = async (comment) => {
   const { id } = comment
   const issueNumber = comment.issue_url.split('/').pop()
   const url = `${api}/issues/${issueNumber}/comments`
+  const commentBody = await processImages(comment.body)
 
   if (await isCommentProcessed(id)) {
     console.log(`Comment ${id} already processed`)
   } else {
     console.log(`Adding comment ${id} to ${url}`)
     const body = {
-      body: `${createMessage(comment)}\n\n\n${comment.body}`
+      body: `${createMessage(comment)}\n\n\n${commentBody}`
     }
     await post(url, body)
       .then(async response => {
@@ -233,9 +237,4 @@ const main = async () => {
   // await fs.writeFile(`${config.source.repo}/all-comments.json`, JSON.stringify(comments, null, '  '))
 }
 
-process.on('unhandledRejection', error => {
-  // Will print "unhandledRejection err is not defined"
-  console.log(error);
-});
-
-main()
+main().catch(console.error)

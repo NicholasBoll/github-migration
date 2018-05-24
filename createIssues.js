@@ -5,6 +5,7 @@ const glob = require('glob')
 const config = require('./config')
 const users = require('./users')
 const createMessage = require('./createMessage')
+const processImages = require('./processImages')
 
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
 
@@ -44,7 +45,7 @@ const createIssue = async (issue) => {
     url: `${api}/issues`,
     body: {
       title: issue.title,
-      body: `${issue.body}\n\n\n${createMessage(issue)}`,
+      body: `${createMessage(issue)}\n\n${await processImages(issue.body)}`,
     },
     json: true,
   })
@@ -61,7 +62,7 @@ const createPull = async (pull) => {
   console.log(`Creating pull: ${pull.number}`)
   const body = {
     title: pull.title,
-    body: `${createMessage(pull)}\r\n\r\n${pull.body}`,
+    body: `${createMessage(pull)}\n\n${await processImages(pull.body)}`,
     head: pull.base.sha === pull.head.sha ? 'refs/heads/master' : `pr${pull.number}head`,
     base: `pr${pull.number}base`,
     maintainer_can_modify: true,
@@ -100,9 +101,4 @@ const main = async () => {
   }
 }
 
-process.on('unhandledRejection', error => {
-  // Will print "unhandledRejection err is not defined"
-  console.log(error);
-});
-
-main()
+main().catch(console.error)

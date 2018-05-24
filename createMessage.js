@@ -45,11 +45,12 @@ const createMessage = (issue) => {
 
   const merged_at = issue.merged_at ? `Merged ${formatDate(issue.merged_at)}` : ''
   const closed_at = issue.closed_at ? `Closed ${formatDate(issue.closed_at)}` : ''
+  const line3 = `_${merged_at || closed_at}_`.replace('__', '') // prevent possible `__` in comments
 
   return `
     > ${createdAvatar} **Authored by [${getUsername(issue.user)}](${getUserUrl(issue.user)})**
     _${creation}_
-    _${merged_at || closed_at}_
+    ${line3}
     ---
   `.trim().split('\n').map(line => line.trim()).join('\n')
 }

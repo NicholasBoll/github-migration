@@ -3,7 +3,6 @@ const fs = require('fs-extra')
 const glob = require('glob')
 
 const config = require('./config')
-const createMessage = require('./createMessage')
 
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
 const apiCallsPerHour = 3000 // for API rate limiting

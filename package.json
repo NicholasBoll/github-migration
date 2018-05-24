@@ -10,8 +10,8 @@
     "bfg": "node ./bfg",
     "clone": "node ./clone",
     "fetch": "node ./fetch.js",
-    "check": "node ./check.js",
-    "anchor": "node ./anchor.js",
+    "rewriteRefs": "node ./rewriteRefs.js",
+    "checkSize": "node ./checkSize.js",
     "rewrite": "node ./rewrite.js",
     "createBranches": "node ./createBranches.js",
     "createIssues": "node ./createIssues.js",
@@ -30,6 +30,10 @@
     "moment": "^2.22.1",
     "request": "^2.85.0",
     "request-promise": "^4.2.2",
+    "uuid": "^3.2.1",
     "yargs": "^11.0.0"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.244.1"
   }
 }

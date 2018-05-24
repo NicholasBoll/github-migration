@@ -38,6 +38,10 @@ module.exports = {
      */
     token: '',
     /**
+     * Optional comment token. Comments only need read-only. If this is defined, this token will be used for comments, otherwise it will fall back to the general token
+     */
+    commentToken: '',
+    /**
      * Optional URL for user avatars when creating issues and comments. Requires 'id' config in 'users.json'
      * @example 
      */
@@ -53,7 +57,13 @@ module.exports = {
    * This value will include just arguments.
    * For example: '--strip-blobs-bigger-than 5M'
    */
-  bfg: ''
+  bfg: '',
+  /**
+   * Optional
+   * If you are moving from Github Enterprise to github.com, you're images won't be viewable when migrated.
+   * If you have an s3 account, this will upload images to an s3 bucket (you have to make the bucket public)
+   **/
+  s3Bucket: '',
 }
 `
 
@@ -61,6 +71,17 @@ if (!fs.pathExistsSync('./config.js')) {
   console.log('Creating a config')
 
   fs.writeFileSync('./config.js', configContents)
+}
+
+if (!fs.pathExistsSync('./s3Config.json')) {
+  console.log('Creating an s3 config')
+  const s3Config = {
+    accessKeyId: '',
+    secretAccessKey: '',
+    region: 'us-east-1',
+  }
+
+  fs.writeFileSync('./s3Config.json', JSON.stringify(s3Config, null, '  '))
 }
 
 usersContent = `
@@ -74,7 +95,6 @@ module.exports = {
      */
     target: 'new-user-name',
     id: '', // ID for avatars. If you go the the profile of the user in the target repo, it will be something like 'https://avatars0.githubusercontent.com/u/{id}?s=140&v=4'
-    token: '', // optional - if present will set PRs and comments to this author rather than the default token
   },
 }
 `
