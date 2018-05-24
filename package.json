@@ -18,6 +18,7 @@
     "createComments": "node ./createComments.js",
     "updateIssues": "node ./updateIssues",
     "deleteBranches": "node ./deleteBranches",
+    "createReleases": "node ./createReleases",
     "increment": "node ./increment.js"
   },
   "author": "",

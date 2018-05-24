@@ -29,6 +29,7 @@ It is best to do this process when nobody is currently working. All in-progress 
 1. `npm run createComments`. This will create all comments downloaded from the source repository. This step will probably take the longest. This step uses throttling to try to stay under your API rate limit set by github. This will also log a lot. State tracking is used here as well, so you can quit and pick up later.
 1. `npm run updateIssues`. This will close all issues that are closed in the source repository. This will also add all the previous labels and add the "Github Import" label. We can't tell Github the PRs are merged, only closed.
 1. `npm run deleteBranches`. This will clean up all the base and head branches created by the migration process
+1. `npm run createReleases`. This will create all the releases downloaded from the source repository.
 1. If everything went well, you can celebrate! :tada:
 
 ## Double Migration

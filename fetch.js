@@ -64,12 +64,12 @@ const writeIssues = async (issues, pulls) => {
   }
 }
 
-const writeList = async (name, items) => {
+const writeList = (name) => (items) => {
   const fileName = `${repo}/${name}.json`
-  await fs.writeFile(fileName, JSON.stringify(items, null, '  '))
+  return fs.writeFile(fileName, JSON.stringify(items, null, '  '))
 }
 
-const migrate = async () => {
+const main = async () => {
 
   await fs.ensureDir(repo)
   // get all the pull requests
@@ -81,10 +81,11 @@ const migrate = async () => {
     { listId: 'comments', fileName: 'comments' },
     { listId: 'issues/comments', fileName: 'issue-comments' },
     { listId: 'commits', fileName: 'commits' },
-  ].map(async ({ listId, fileName}) => {
-    const issueComments = await fetchList(listId)
-    await writeList(fileName, issueComments)
+    { listId: 'releases', fileName: 'releases' },
+  ].map(({ listId, fileName}) => {
+    return fetchList(listId)
+      .then(writeList(fileName))
   }))
 }
 
-migrate()
+main()
