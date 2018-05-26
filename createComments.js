@@ -50,13 +50,29 @@ const setCommentProcessed = async (id, newId = true) => {
   await fs.writeFile(`./${config.source.repo}/state.json`, JSON.stringify(state, null, '  '))
 }
 
+const setReviewProcessed = async (id, newId = true) => {
+  console.log(`Setting ${id} as processed`)
+  const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
+
+  state.reviews = state.reviews || {}
+  state.reviews[id] = newId
+  await fs.writeFile(`./${config.source.repo}/state.json`, JSON.stringify(state, null, '  '))
+}
+
 const isCommentProcessed = async (id) => {
   const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
 
   return !!(state.comments || {})[id]
 }
 
-const isReviewComment = comment => !!comment.pull_request_url
+const isReviewProcessed = async (id) => {
+  const state = JSON.parse(await fs.readFile(`./${config.source.repo}/state.json`))
+
+  return !!(state.reviews || {})[id]
+}
+
+const isReviewComment = comment => !!comment.state
+const isPullRequestComment = comment => !!comment.pull_request_url
 const isCommitComment = comment => !!comment.commit_id && !comment.pull_request_url
 
 const logError = (comment, err) => {
@@ -67,20 +83,64 @@ const logError = (comment, err) => {
 
 const createComment = async (comment, comments) => {
   const { id } = comment
-  if (await isCommentProcessed(id)) {
-    console.log(`Comment ${id} already processed`)
+  if (isReviewComment(comment)) {
+    await createReview(comment)
+  } else if (isPullRequestComment(comment)) {
+    await createPullRequestComment(comment, comments)
+  } else if (isCommitComment(comment)) {
+    await createCommitComment(comment, comments)
   } else {
-    if (isReviewComment(comment)) {
-      await createReviewComment(comment, comments)
-    } else if (isCommitComment(comment)) {
-      await createCommitComment(comment, comments)
+    await createIssueComment(comment)
+  }
+}
+
+const getEvent = (state) => {
+  switch(state) {
+    case 'APPROVED':
+      return 'APPROVE'
+    case 'CHANGES_REQUESTED':
+      return 'REQUEST_CHANGES'
+    default:
+      return ''
+  }
+}
+
+const createReview = async (comment) => {
+  const { id } = comment
+
+  if (await isReviewProcessed(id)) {
+    console.log(`Review ${id} already processed`)
+  } else if (comment.state === 'COMMENTED') {
+    console.log(`Review ${id} is a comment - skipping`)
+  } else if (comment.state === 'DISMISSED') {
+    console.log(`Review ${id} was dismissed - skipping`)
+  } else {
+    const number = comment.pull_request_url.split('/').pop()
+    const url = `${api}/pulls/${number}/reviews`
+    const event = getEvent(comment.state)
+    if (event) {
+      const body = {
+        commit_id: comment.commit_id,
+        body: comment.body,
+        event,
+        comments: []
+      }
+      await post(url, body)
+        .then(async response => {
+          await setReviewProcessed(id, response.id)
+          return response
+        })
+        .catch(err => {
+          console.log(`Could not create review ${id}`)
+          logError(comment, err)
+        })
     } else {
-      await createIssueComment(comment)
+      console.log(`Review ${id} has no event type ${comment} - skipping`)
     }
   }
 }
 
-const createReviewComment = async (comment, comments = []) => {
+const createPullRequestComment = async (comment, comments = []) => {
   const { id } = comment
   const issueNumber = comment.pull_request_url.split('/').pop()
   const url = `${api}/pulls/${issueNumber}/comments`
@@ -220,10 +280,12 @@ const formatDuration = (duration) => {
 const main = async () => {
   const issueComments = JSON.parse(await fs.readFile(`${config.source.repo}/issue-comments.json`))
   const commitComments = JSON.parse(await fs.readFile(`${config.source.repo}/comments.json`))
-  const reviewComments = JSON.parse(await fs.readFile(`${config.source.repo}/pull-comments.json`))
+  const pullComments = JSON.parse(await fs.readFile(`${config.source.repo}/pull-comments.json`))
+  const reviewComments = JSON.parse(await fs.readFile(`${config.source.repo}/review-comments.json`))
+  const reviews = JSON.parse(await fs.readFile(`${config.source.repo}/reviews.json`))
   const comments = []
-    .concat(issueComments, commitComments, reviewComments)
-    .sort((a, b) => a.created_at > b.created_at ? 1 : -1)
+    .concat(issueComments, commitComments, pullComments, reviewComments, reviews)
+    .sort((a, b) => (a.created_at || a.submitted_at) > (b.created_at || b.submitted_at) ? 1 : -1)
 
   console.log(`Comments to process: ${comments.length}`)
 
