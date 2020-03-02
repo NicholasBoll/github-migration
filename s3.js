@@ -24,7 +24,7 @@ const uploadImage = (bucket, contentType) => async (contents) => {
       if (err) {
         reject(err)
       } else {
-        resolve(`https://s3.amazonaws.com/${bucket}/${filename}`)
+        resolve(`https://${bucket}.s3.amazonaws.com/${filename}`)
       }
     })
   })
