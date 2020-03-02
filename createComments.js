@@ -3,6 +3,7 @@ const moment = require('moment')
 const fs = require('fs-extra')
 const glob = require('glob')
 
+const { sleep } = require('./utils')
 const config = require('./config')
 const users = require('./users')
 const createMessage = require('./createMessage')
@@ -192,8 +193,8 @@ const createPullRequestComment = async (comment, comments = []) => {
             await setCommentProcessed(id, true)
           })
       })
+      await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
   }
-  await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
 }
 
 const createCommitComment = async (comment) => {
@@ -254,12 +255,6 @@ const createIssueComment = async (comment) => {
 
     await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
   }
-}
-
-const sleep = async (milliseconds) => {
-  return new Promise(resolve => {
-    setTimeout(resolve, milliseconds)
-  })
 }
 
 /**

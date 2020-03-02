@@ -2,6 +2,7 @@ const request = require('request-promise')
 const fs = require('fs-extra')
 const glob = require('glob')
 
+const { sleep } = require('./utils')
 const config = require('./config')
 const createMessage = require('./createMessage')
 
@@ -53,12 +54,6 @@ const deleteBranch = async (issue) => {
   }
   await bumpIssueCount(issue)
   await sleep(60 * 60 * 1000 * 2 / config.apiCallsPerHour)
-}
-
-const sleep = async (milliseconds) => {
-  return new Promise(resolve => {
-    setTimeout(resolve, milliseconds)
-  })
 }
 
 /**
