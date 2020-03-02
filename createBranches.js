@@ -2,6 +2,7 @@ const request = require('request-promise')
 const fs = require('fs-extra')
 const glob = require('glob')
 
+const { sleep } = require('./utils')
 const config = require('./config')
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
 
@@ -40,6 +41,7 @@ const main = async () => {
     if (issue.base) {
       console.log(`Creating branch for PR-${issue.number}`)
       await createBranch(issue)
+      await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
     }
   }
 }

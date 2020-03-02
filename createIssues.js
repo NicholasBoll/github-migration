@@ -2,6 +2,7 @@ const request = require('request-promise')
 const fs = require('fs-extra')
 const glob = require('glob')
 
+const { sleep } = require('./utils')
 const config = require('./config')
 const users = require('./users')
 const createMessage = require('./createMessage')
@@ -95,8 +96,10 @@ const main = async () => {
       console.log(`Skipping ${issue.number}. Already processed`)
     } else if (issue.base) {
       await createPull(issue)
+      await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
     } else {
       await createIssue(issue)
+      await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
     }
   }
 }

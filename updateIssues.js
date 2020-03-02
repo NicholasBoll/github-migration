@@ -2,6 +2,7 @@ const request = require('request-promise')
 const fs = require('fs-extra')
 const glob = require('glob')
 
+const { sleep } = require('./utils')
 const config = require('./config')
 
 const api = `${config.target.baseUrl}/${config.target.org}/${config.target.repo}`
@@ -69,6 +70,7 @@ const main = async () => {
       console.log(`Skipping ${issue.number}. Already processed`)
     } else {
       await updateBranch(issue)
+      await sleep(60 * 60 * 1000 / config.apiCallsPerHour)
     }
   }
 }
