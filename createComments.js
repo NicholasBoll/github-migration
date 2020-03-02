@@ -145,11 +145,10 @@ const createPullRequestComment = async (comment, comments = []) => {
   const { id } = comment
   const issueNumber = comment.pull_request_url.split('/').pop()
   const url = `${api}/pulls/${issueNumber}/comments`
-  const commentBody = await processImages(comment.body)
-
   if (await isCommentProcessed(id)) {
     console.log(`Comment ${id} already processed`)
   } else {
+    const commentBody = await processImages(comment.body)
     console.log(`Adding comment ${id} to ${url}`)
     let body
     const reply = comments.find(c => c.original_commit_id === comment.original_commit_id && c.original_position === comment.original_position && c.diff_hunk === comment.diff_hunk)
