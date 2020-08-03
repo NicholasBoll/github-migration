@@ -17,5 +17,5 @@ const main = async () => {
 
 main()
   .catch(err => {
-    console.err('Error:', err)
+    console.error('Error:', err)
   })

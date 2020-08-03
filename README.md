@@ -5,11 +5,22 @@ Before we start, I'd like to credit [Michael Welch](https://github.com/michaelgw
 
 It is best to do this process when nobody is currently working. All in-progress work should be pushed to the source remote repository before starting. Any work pushed during this process or not pushed prior to starting will be lost and patches will have to be created to apply to the new repository. For smaller repos, this could be done at night. Larger you may need to do it over the weekend (copying comments can take a while with rate limits).
 
+**Prep Steps:**
+1. Make sure you have non-user admin tokens for your source and target github
+1. This tool doesn't create a new repository in the target github, you will need to create an empty repository in your target github to migrate your source repository into.
+    - If you have `dependabot security updates` enabled, you will need to disable it before pushing your new repo. Otherwise, if it picks up a new vulnerability it will auto-create a PR and your issue numbers will no longer match
+1. There is no API access to migrate images to the target github CDN githubusercontent. This migration tool will check if there is an image in the issue description or comment, upload it the provided S3 bucket and update the image link
+    - This is **optional** but if you want this functionality, you will need to create an S3 bucket and configure it in the `config.js` and `s3Config.js` files created during `initialization` (see steps below)
+
+**Migration Steps:**
 1. Clone this repository
 1. `npm install`
 1. `npm run initialize` - this will create a `config.js` file. Modify this file. The token here will dictate the user that creates comments and pull requests. You might want this to be a non-user account (maybe automation account) to make it obvious you personally didn't create all issues, pull requests and comments. The scripts will have an author section to credit the real author
 1. Optional: Configure `users.js`
     - Maps from usernames of the source github to the destination github. If ids are provided, avatars will link to the real avatar - especially useful moving from GHE -> github.com where avatar URLs might be behind a corporate proxy
+1. Optional: Configure `s3Config.js`
+    - Configure AWS `accessKeyId`, `secretAccessKey`, and `region`
+    - Run `npm run test:s3` to test your S3 connection and make sure the given bucket in `config.js` exists
 1. `npm run test:source`. This will test your source configuration. Adjust the source config until this works
 1. `npm run test:target`. This will test your target configuration. Adjust the source config until this works
 1. `git clone <source-repo-url> --mirror`. This will clone your source repo. The `mirror` option will download all branches, tags and refs (required for converting pull requests)
@@ -23,7 +34,8 @@ It is best to do this process when nobody is currently working. All in-progress 
     - `(cd <repo>.git; git reflog expire --expire=now --all && git gc --prune=now --aggressive)`. **NOTE** change `<repo>` to the target repository name.
     - `npm run checkSize`. This is how big the target repo will be
     - `npm run rewrite`. This will use the commit map created by BFG and write the new commit hashes to all downloaded pull requests, comments and commits. This can take a while depending on how many pull requests and comments you have. Each step has progress logging to help.
-1. `(cd <repo>.git; git push <dest-repo> --mirror)`. This will push all branches, tags and refs to the target destination
+1. `cd <source-repo>.git`
+1. `git push <dest-repo> --mirror`. This will push all branches, tags and refs to the target destination
 1. `npm run createBranches`. This will create a branch for each PR on the target repository. This is the first step that pushes github artifacts to the destination repo
 1. `npm run createIssues`. This will create issues and pull requests using base and head branches. State tracking is used in case of any errors. This step is the most finicky because the issues must be added in order, so the script will bail on any error informing you how to proceed. You may need to create a dummy issue to move on.
 1. `npm run createComments`. This will create all comments downloaded from the source repository. This step will probably take the longest. This step uses throttling to try to stay under your API rate limit set by github. This will also log a lot. State tracking is used here as well, so you can quit and pick up later.
