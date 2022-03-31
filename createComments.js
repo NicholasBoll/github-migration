@@ -128,7 +128,8 @@ const createReview = async (comment) => {
         // See comment above in getEvent about why we can't use Approved as normal.
         // Since we are going to put in as a comment, we should also include information about who the approval came from.
         const clonedComment = { ...comment, created_at: comment.submitted_at };
-        commentBody = `${createMessage(clonedComment)}\n\n\nAPPROVED - ${commentBody}`;
+        const approvalText = `APPROVED${commentBody.length > 0 ? ' - ' : ''}`;
+        commentBody = `${createMessage(clonedComment)}\n\n\n${approvalText}${commentBody}`;
       }
       const body = {
         commit_id: comment.commit_id,
