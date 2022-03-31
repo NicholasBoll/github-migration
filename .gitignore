@@ -7,6 +7,5 @@ node_modules
 *.json
 *.bfg-report
 
-config.js
 users.js
 state.json
