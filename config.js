@@ -22,11 +22,11 @@ module.exports = {
      */
   },
   target: {
-    baseUrl: 'https://api.github.com/repos',
+    baseUrl: 'https://ghe.spotify.net/api/v3/repos',
     /**
      * Org or Username of your target github
      */
-    org: 'https://ghe.spotify.net/api/v3/repos',
+    org: 'anchor',
     /**
      * Repo field of your target github
      */
