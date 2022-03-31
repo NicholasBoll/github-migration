@@ -98,7 +98,10 @@ const createComment = async (comment, comments) => {
 const getEvent = (state) => {
   switch(state) {
     case 'APPROVED':
-      return 'APPROVE'
+      // RW: our Github Enterprise does not allow the same user to approve their own PR.
+      // Since the same bot will be creating the PR and commenting on it, we can't actually send a "Review comment" as an approval.
+      // Here we treat it as a normal Review comment to get around this problem.
+      return 'COMMENT'
     case 'CHANGES_REQUESTED':
       return 'REQUEST_CHANGES'
     default:
@@ -120,9 +123,16 @@ const createReview = async (comment) => {
     const url = `${api}/pulls/${number}/reviews`
     const event = getEvent(comment.state)
     if (event) {
+      let commentBody = comment.body;
+      if (comment.state === 'APPROVED') {
+        // See comment above in getEvent about why we can't use Approved as normal.
+        // Since we are going to put in as a comment, we should also include information about who the approval came from.
+        const clonedComment = { ...comment, created_at: comment.submitted_at };
+        commentBody = `${createMessage(clonedComment)}\n\n\nAPPROVED - ${commentBody}`;
+      }
       const body = {
         commit_id: comment.commit_id,
-        body: comment.body,
+        body: commentBody,
         event,
         comments: []
       }
