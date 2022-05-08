@@ -43,44 +43,63 @@ const fetchList = async (listId) => {
   return results
 }
 
-const fetchIssues = async () => {
+const getLowestIssueDownloaded = () => {
+  const issueFilenameRegex = /issue-([0-9]+)\.json/;
+  const issues = glob.sync(`${repo}/issues/issue-+([0-9]).json`)
+    .map(filename => {
+      // extract issue number from filename
+      const matches = issueFilenameRegex.exec(filename);
+      return parseInt(matches[1], 10);
+    })
+    .sort((a, b) => a - b); // ascending sort to get lowest issue number
+  if (issues.length <= 1) {
+    return undefined;
+  }
+  return issues[0] + 1; // add 1 just in case that issue was only partially downloaded.
+}
+
+const fetchIssues = async (lastIssueDownloaded) => {
   const issues = await fetchList('issues')
   const pulls = await fetchList('pulls')
-  let reviews = []
-  let comments = []
 
   for (let issue of issues) {
+    if (lastIssueDownloaded !== undefined && issue.number > lastIssueDownloaded) {
+      // skip already downloaded issues -- this is our Resume functionality.
+      continue;
+    }
     if (issue.pull_request) {
       const pr = pulls.find(pull => pull.number === issue.number)
       const prReviews = await fetchList(`pulls/${issue.number}/reviews`)
+      let comments = []
       for (let review of prReviews) {
         const reviewComments = await fetchList(`pulls/${issue.number}/reviews/${review.id}/comments`)
         review.comments = reviewComments
         comments = comments.concat(reviewComments)
       }
-      reviews = reviews.concat(prReviews)
+      const reviewFileName = `${repo}/issues/issue-${issue.number}-reviews.json`
+      await fs.writeFile(reviewFileName, JSON.stringify(prReviews, null, '  '))
+      const commentFileName = `${repo}/issues/issue-${issue.number}-review-comments.json`
+      await fs.writeFile(commentFileName, JSON.stringify(comments, null, '  '))
       if (pr) {
         issue.base = pr.base
         issue.head = pr.head
         issue.merged_at = pr.merged_at
       }
     }
-  }
-
-  return { issues, reviews, comments }
-}
-
-/**
- * 
- * @param {{}[]} issues 
- * @param {{}[]} pulls 
- */
-const writeIssues = async (issues) => {
-  await fs.ensureDir(`${repo}/issues`)
-  for (let issue of issues) {
     const fileName = `${repo}/issues/issue-${issue.number}.json`
     await fs.writeFile(fileName, JSON.stringify(issue, null, '  '))
   }
+}
+
+const consolidateList = (name) => {
+  const items = glob.sync(`${repo}/issues/issue-+([0-9])-${name}.json`)
+    .map(file => JSON.parse(fs.readFileSync(file)))
+    .reduce((acc, curr) => {
+      acc = acc.concat(curr);
+      return acc;
+    }, []);
+  const fileName = `${repo}/${name}.json`
+  return fs.writeFile(fileName, JSON.stringify(items, null, '  '))
 }
 
 const writeList = (name) => (items) => {
@@ -90,12 +109,13 @@ const writeList = (name) => (items) => {
 
 const main = async () => {
   await fs.ensureDir(repo)
+  await fs.ensureDir(`${repo}/issues`)
 
   // get all the issues
-  const { issues, reviews, comments } = await fetchIssues()
-  await writeIssues(issues)
-  await writeList('reviews')(reviews)
-  await writeList('review-comments')(comments)
+  const lastIssueDownloaded = getLowestIssueDownloaded();
+  await fetchIssues(lastIssueDownloaded)
+  await consolidateList('reviews')
+  await consolidateList('review-comments')
 
   await Promise.all([
     { listId: 'pulls/comments', fileName: 'pull-comments' },
