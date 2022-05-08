@@ -1,10 +1,7 @@
 const AWS = require('aws-sdk')
 const uuid = require('uuid/v4')
 
-const config = require('./config')
-
-AWS.config.loadFromPath('./s3Config.json')
-const s3 = new AWS.S3()
+let s3 = undefined;
 
 /**
  * Upload an image to s3
@@ -12,6 +9,10 @@ const s3 = new AWS.S3()
  * @returns {(contents: AWS.S3.Body) => Promise<string>}
  */
 const uploadImage = (bucket, contentType) => async (contents) => {
+  if (!s3) {
+    AWS.config.loadFromPath('./s3Config.json')
+    s3 = new AWS.S3()
+  }
   return new Promise((resolve, reject) => {
     const filename = uuid()
     s3.putObject({
