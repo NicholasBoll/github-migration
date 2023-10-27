@@ -1,7 +1,9 @@
 const request = require('request-promise')
 
 const config = require('./config')
-const { uploadImage } = require('./s3')
+if (config.s3Bucket) {
+  const { uploadImage } = require('./s3')
+}
 
 const replaceAll = (str, obj) => {
   let newStr = str
