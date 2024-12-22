@@ -8,7 +8,7 @@ const main = async () => {
   const refsPath = `${config.source.repo}.git/packed-refs`
   const refs = (await fs.readFile(refsPath, { encoding: 'utf-8' }))
     .split(os.EOL)
-    .map(ref => ref.replace(/refs\/pull\/([0-9]+)\/head/, 'refs/heads/pr$1head'))
+    .map(ref => ref.replace(/refs\/pull\/([0-9]+)\/(\w+)/g, 'refs/heads/pr$1$2'))
     .join(os.EOL)
   
   await fs.move(refsPath, `${refsPath}.back`)
