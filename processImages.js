@@ -1,7 +1,6 @@
 const request = require('request-promise')
 
 const config = require('./config')
-const { uploadImage } = require('./s3')
 
 const replaceAll = (str, obj) => {
   let newStr = str
@@ -20,6 +19,8 @@ const processImages = async (content) => {
   const imgMatchAll = new RegExp(imgRegExp, 'g')
 
   if (config.s3Bucket) {
+    const { uploadImage } = require('./s3')
+
     return Promise.all(
       (content.match(imgMatchAll) || [])
         .map(img => {
